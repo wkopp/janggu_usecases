@@ -38,8 +38,6 @@ binsize = 200
 
 chrom, start, end = 'chr2', 43040282, 43043778
 
-print("#" * 20)
-
 shared_space = {
     'type': 'dnase_dna',
     'seq_dropout': True,

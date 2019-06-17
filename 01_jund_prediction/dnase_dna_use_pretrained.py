@@ -39,7 +39,7 @@ os.environ['JANGGU_OUTPUT'] = args.path
 inpath = args.inpath
 
 print("#" * 20)
-print("Starting hyper-parameter search ...")
+print("Fitting combined models ...")
 
 
 shared_space = {
