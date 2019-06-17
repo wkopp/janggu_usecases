@@ -12,7 +12,7 @@ from keras import optimizers
 from keras.callbacks import EarlyStopping
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-data', dest='data', type=str, default='../data', help='Raw data folder')
+parser.add_argument('-data', dest='data', type=str, default='./data', help='Raw data folder')
 parser.add_argument('-o', dest='order', type=int, default=3, help='Sequence features order')
 parser.add_argument('-epochs', dest='epochs', type=int, default=30, help='Number of epochs')
 parser.add_argument('-rep', dest='rep', type=int, default=1, help='Repetition of the experiment.')
@@ -113,8 +113,7 @@ pars = {'order': order,
         'stranded': strand,
         'flank': flank,
         'rep': 'r{}'.format(rep),
-        'flatten': flatten,
-        'vep': vep}
+        'flatten': flatten}
 
 
 DATA = get_data(pars)
