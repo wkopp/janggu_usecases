@@ -53,27 +53,24 @@ test_roi = os.path.join('..', 'extra', 'test.bed')
 os.environ['JANGGU_OUTPUT'] = './deepsea_results'
 
 def get_data(params):
-    if not params['vep']:
-        train_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=train_roi,
-                                                       resolution=200,
-                                                       store_whole_genome=True,
-                                                       storage='sparse', cache=True,
-                                                       dtype='int8',
-                                                       minoverlap=.5))
-        test_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=test_roi,
-                                                      resolution=200,
-                                                      store_whole_genome=True,
-                                                      storage='sparse', cache=True,
-                                                      dtype='int8',
-                                                      minoverlap=.5))
-        val_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=val_roi,
-                                                     resolution=200,
-                                                     store_whole_genome=True,
-                                                     storage='sparse', cache=True,
-                                                     dtype='int8',
-                                                     minoverlap=.5))
-    else:
-        train_labels = test_labels = val_labels = None
+    train_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=train_roi,
+                                                   resolution=200,
+                                                   store_whole_genome=True,
+                                                   storage='sparse', cache=True,
+                                                   dtype='int8',
+                                                   minoverlap=.5))
+    test_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=test_roi,
+                                                  resolution=200,
+                                                  store_whole_genome=True,
+                                                  storage='sparse', cache=True,
+                                                  dtype='int8',
+                                                  minoverlap=.5))
+    val_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=val_roi,
+                                                 resolution=200,
+                                                 store_whole_genome=True,
+                                                 storage='sparse', cache=True,
+                                                 dtype='int8',
+                                                 minoverlap=.5))
     train_seq = Bioseq.create_from_refgenome('dna', refgenome=refgenome, roi=train_roi,
                                              store_whole_genome=True,
                                              storage='ndarray', cache=True,

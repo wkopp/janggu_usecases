@@ -15,6 +15,22 @@ removeEnd = function(df, pattern) {
   return(df)
 }
 
+finalTfbsNameCleanup <- function(df) {
+    itfs = which(df$type == "Tfbs")
+    
+    for (i in itfs) {
+      res = gregexpr("[A-Z]", df$labels[i])[[1]]
+      if (length(res) == 2) {
+        new_label =  substr(df$labels[i], res[2], nchar(df$labels[i]))
+      } else {
+        new_label =  substr(df$labels[i], res[2], res[3]-1)
+      }
+      df$labels[i] = new_label
+    }
+
+    return(df)
+}
+
 # process labels, remove redundant parts
 df = removeStart(df, "E003.")
 df = removeStart(df, "E123.")
@@ -39,16 +55,5 @@ df = removeStart(df, "Uchicago")
 df = removeStart(df, "Uta")
 df = removeStart(df, "Uw")
 
-#itfs = which(df$type == "Tfbs")
-#
-#for (i in itfs) {
-#  res = gregexpr("[A-Z]", df$labels[i])[[1]]
-#  if (length(res) == 2) {
-#    new_label =  substr(df$labels[i], res[2], nchar(df$labels[i]))
-#  } else {
-#    new_label =  substr(df$labels[i], res[2], res[3]-1)
-#  }
-#  df$labels[i] = new_label
-#}
-
+df = finalTfbsNameCleanup(df)
 
