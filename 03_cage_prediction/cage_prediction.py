@@ -10,10 +10,6 @@ from itertools import product
 if 'CUDA_VISIBLE_DEVICES' not in os.environ:
     os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
-from sklearn.metrics import explained_variance_score
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import mean_absolute_error
-
 from keras import optimizers
 import keras.backend as K
 from keras.callbacks import EarlyStopping
@@ -245,39 +241,14 @@ def objective(params):
                    callbacks=['var_explained', 'mse', 'mae', 'cor'],
                    datatags=['test'])
 
-    evar_train = explained_variance_score(train[1][:][:, 0], pred_train[:, 0])
-    evar_val = explained_variance_score(val[1][:][:, 0], pred_val[:, 0])
-    evar_test = explained_variance_score(test[1][:][:, 0], pred_test[:, 0])
-    mse_train = mean_squared_error(train[1][:][:, 0], pred_train[:, 0])
-    mse_val = mean_squared_error(val[1][:][:, 0], pred_val[:, 0])
-    mse_test = mean_squared_error(test[1][:][:, 0], pred_test[:, 0])
-    mae_train = mean_absolute_error(train[1][:][:, 0], pred_train[:, 0])
-    mae_val = mean_absolute_error(val[1][:][:, 0], pred_val[:, 0])
-    mae_test = mean_absolute_error(test[1][:][:, 0], pred_test[:, 0])
     cor_train = np.corrcoef(train[1][:][:, 0], pred_train[:, 0])[0, 1]
     cor_val = np.corrcoef(val[1][:][:, 0], pred_val[:, 0])[0, 1]
     cor_test = np.corrcoef(test[1][:][:, 0], pred_test[:, 0])[0, 1]
 
     model.summary()
-    main_logger.info('expl_var [train/val/test]: {:.2%}/{:.2%}/{:.2%}'.format(
-        evar_train, evar_val, evar_test))
-    main_logger.info('mse [train/val/test]: {:.2f}/{:.2f}/{:.2f}'.format(
-        mse_train, mse_val, mse_test))
-    main_logger.info('mae [train/val/test]: {:.2f}/{:.2f}/{:.2f}'.format(
-        mae_train, mae_val, mae_test))
     main_logger.info('cor [train/val/test]: {:.2f}/{:.2f}/{:.2f}'.format(
         cor_train, cor_val, cor_test))
     return {'loss': mae_val, 'status': 'ok', 'all_losses': hist.history,
-            'evar_train': evar_train,
-            'evar_val': evar_val,
-            'evar_test': evar_test,
-            'mse_train': mse_train,
-            'mse_val': mse_val,
-            'mse_test': mse_test,
-            'mae_train': mae_train,
-            'mae_val': mae_val,
-            'mae_val': mae_val,
-            'mae_test': mae_test,
             'cor_train': cor_train,
             'cor_val': cor_val,
             'cor_test': cor_test,
@@ -308,8 +279,8 @@ shared_space = {
 }
 
 results = {'run':[], 'val_chrom':[], 'inputs':[], 'dnaorder':[], 'strand':[],
-           'cor':[], 'explvar':[], 'mse':[], 'mae':[],
-           'cor_val':[], 'explvar_val':[], 'mse_val':[], 'mae_val':[],
+           'cor':[],
+           'cor_val':[],
            'pretrained': []}
 
 orders = [dnaorder]
@@ -322,13 +293,7 @@ def write_results(params, res):
     results['inputs'].append(params['inputs'])
     results['strand'].append(params['stranded'])
     results['cor'].append(res['cor_test'])
-    results['mse'].append(res['mse_test'])
-    results['mae'].append(res['mae_test'])
-    results['explvar'].append(res['evar_test'])
     results['cor_val'].append(res['cor_val'])
-    results['mse_val'].append(res['mse_val'])
-    results['mae_val'].append(res['mae_val'])
-    results['explvar_val'].append(res['evar_val'])
     results['pretrained'].append('pretrained' if params['pretrained'] else 'randominit')
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(os.environ['JANGGU_OUTPUT'], "gridsearch_cage_prediction.tsv"), sep='\t')
