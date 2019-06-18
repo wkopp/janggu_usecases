@@ -96,33 +96,9 @@ for dnarun, dnaserun in zip([1, 2, 3, 4, 5], [1, 2, 3, 4, 5]):
     jointmodel = Janggu(dnamodel.kerasmodel.inputs +  dnasemodel.kerasmodel.inputs,
                         output,
                         name='pretrained_dnase_dna_joint_model_{}_{}'.format(dnasename, dnaname))
-    jointmodel.compile(optimizer=get_opt('amsgrad'), loss='binary_crossentropy',
-                       metrics=['acc'])
 
-    train_data, val_data, test_data = get_data(shared_space)
-
-    hist = jointmodel.fit(train_data[0], train_data[1],
-                          epochs=shared_space['epochs'], batch_size=64,
-                          validation_data=val_data,
-                          callbacks=[EarlyStopping(patience=5, restore_best_weights=True)])
-
-    jointmodel.evaluate(test_data[0], test_data[1], datatags=['test'], callbacks=['auc', 'auprc'])
-    jointmodel.evaluate(val_data[0], val_data[1], datatags=['val'], callbacks=['auc', 'auprc'])
-    jointmodel.save(show_shapes=False)
-
-    # Run Evaluation
-    pred_test = jointmodel.predict(test_data[0])
-    pred_val = jointmodel.predict(val_data[0])
-
-    auprc_val = average_precision_score(val_data[1][:], pred_val)
-    auprc_test = average_precision_score(test_data[1][:], pred_test)
-    print('auprc_val: {:.2%}'.format(auprc_val))
-    print('auprc_test: {:.2%}'.format(auprc_test))
-    auprc_pre_val.append(auprc_val)
-    auprc_pre_test.append(auprc_test)
-
-    # reload the same model architecture, but this time 
-    # with randomly initialized weights
+    # reload the same model architecture, but this will
+    # randomly reinitialized the weights
     newjointmodel = model_from_json(jointmodel.kerasmodel.to_json())
 
     newjointmodel = Janggu(newjointmodel.inputs,
@@ -136,11 +112,6 @@ for dnarun, dnaserun in zip([1, 2, 3, 4, 5], [1, 2, 3, 4, 5]):
                              validation_data=val_data,
                              callbacks=[EarlyStopping(patience=5, restore_best_weights=True)])
 
-
-    jointmodel.evaluate(test_data[0], test_data[1],
-                        datatags=['test'], callbacks=['auc', 'auprc'])
-    jointmodel.evaluate(val_data[0], val_data[1],
-                        datatags=['val'], callbacks=['auc', 'auprc'])
     pred_test = newjointmodel.predict(test_data[0])
     pred_val = newjointmodel.predict(val_data[0])
 
@@ -156,10 +127,3 @@ df = pd.DataFrame({'auprc_val': auprc_rand_val, 'auprc_test': auprc_rand_test})
 
 df.to_csv(os.path.join(os.environ['JANGGU_OUTPUT'],
                        "dnase_dna_use_randominit_submodels.tsv"), sep='\t')
-    
-
-df = pd.DataFrame({'auprc_val': auprc_pre_val, 'auprc_test': auprc_pre_test})
-
-df.to_csv(os.path.join(os.environ['JANGGU_OUTPUT'],
-                       "dnase_dna_use_pretrained_submodels.tsv"), sep='\t')
-    
