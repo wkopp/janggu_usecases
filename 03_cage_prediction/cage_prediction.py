@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import logging
 import numpy as np
+import matplotlib.pyplot as plt
 
 from itertools import product
 
@@ -363,6 +364,12 @@ for val_chrom, order, strand in product(val_chroms, orders, strands):
     write_results(shared_space, res)
 
 
+#shared_space['run'] = run
+shared_space['val_chrom'] = "chr22"
+shared_space['order'] = dnaorder
+shared_space['pretrained'] = False
+shared_space['seq_dropout'] = 0.2
+shared_space['inputs'] = 'epi_dna'
 params = shared_space
 train_data = get_data(params)
 train, test = split_train_test(train_data, [test_chrom])
