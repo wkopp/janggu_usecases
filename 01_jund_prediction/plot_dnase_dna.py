@@ -66,8 +66,7 @@ shared_space = {
 
 train_data, val_data, test_data = get_data(shared_space)
 
-name = 'pretrained_dnase_dna_joint_model_1'
-name = 'dna_o3_d0.0_run_3_1'
+name = 'randominit_dnase_dna_joint_model_dnase_run_zscorelog_orient_7_1_dna_o3_d0.2_run_5_1'
 
 model = Janggu.create_by_name(name)
 model.compile(optimizer='sgd', loss='binary_crossentropy',
