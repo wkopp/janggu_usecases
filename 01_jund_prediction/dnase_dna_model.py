@@ -70,6 +70,11 @@ shared_space = {
 
 space = {'modeltype': shared_space}
 
+DATA = get_data(shared_space)
+train_data = DATA[0]
+val_data = DATA[1]
+test_data = DATA[2]
+
 auprc_pre_val = []
 auprc_pre_test = []
 auprc_rand_val = []

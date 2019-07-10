@@ -4,6 +4,7 @@ import pandas as pd
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import mean_absolute_error
 
 from itertools import product
 
@@ -234,9 +235,10 @@ def objective(params):
     model.evaluate(train[0], train[1],
                    callbacks=['var_explained', 'mse', 'mae', 'cor'],
                    datatags=['train'])
-    model.evaluate(val[0], val[1],
-                   callbacks=['var_explained', 'mse', 'mae', 'cor'],
-                   datatags=['val'])
+    mae_val = model.evaluate(val[0], val[1],
+                             callbacks=['var_explained', 'mse', 'mae', 'cor'],
+                             datatags=['val'])
+    mae_val = mae_val[0]
     model.evaluate(test[0], test[1],
                    callbacks=['var_explained', 'mse', 'mae', 'cor'],
                    datatags=['test'])
