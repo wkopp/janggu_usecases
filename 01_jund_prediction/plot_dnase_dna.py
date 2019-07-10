@@ -2,7 +2,7 @@ import argparse
 import os
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 
 if 'CUDA_VISIBLE_DEVICES' not in os.environ:
     os.environ['CUDA_VISIBLE_DEVICES'] = ' 0'
@@ -12,6 +12,9 @@ from janggu.data import Cover
 from janggu import Janggu
 from janggu.model import input_attribution
 from janggu.data import plotGenomeTrack
+from janggu.data import LineTrack
+from janggu.data import SeqTrack
+
 from data_utils import get_data
 
 
@@ -33,11 +36,6 @@ os.environ['JANGGU_OUTPUT'] = args.path
 
 inpath = args.inpath
 
-epochs = 15
-binsize = 200
-
-chrom, start, end = 'chr2', 43040282, 43043778
-
 shared_space = {
     'type': 'dnase_dna',
     'seq_dropout': True,
@@ -58,7 +56,7 @@ shared_space = {
     'nkernel2': 5,
     'kernel2len': 3,
     'binsize': 200,
-    'concat': 'flatten',
+#concat': 'flatten',
     'inception': True,
     'epochs': 100,
     'opt': 'sgd'
@@ -82,7 +80,8 @@ pred = model.predict(test_data[0])
 # convert predictions to Coverage track
 cov_pred = Cover.create_from_array('predict', pred,
                                    test_data[1].gindexer,
-                                   conditions=['JunD'], store_whole_genome=True)
+                                   conditions=['JunD'],
+                                   store_whole_genome=True)
 
 chrom = 'chr3'
 start = 2353000
@@ -90,23 +89,15 @@ end = 2357000
 infl = input_attribution(model, test_data[0], chrom, start, end)
 
 # plot only input and output
-plotGenomeTrack([cov_pred, test_data[1].data, test_data[0][1]],
+fig = plotGenomeTrack([LineTrack(cov_pred, color='c', marker=','),
+                 LineTrack(test_data[1].data, color='b', marker=','),
+                 LineTrack(test_data[0][1], color='r')],
                 chrom, start, end,
-                plottypes=['line']*3,
-                figsize=(8, 4)).savefig(
-                    os.path.join(
-                        os.environ['JANGGU_OUTPUT'], 'jund_input_outout_line.png'))
-plotGenomeTrack([cov_pred, test_data[1].data, test_data[0][1]],
-                chrom, start, end,
-                plottypes=['line']*3).savefig(
-                    os.path.join(
-                        os.environ['JANGGU_OUTPUT'], 'jund_input_outout_line.eps'))
-plotGenomeTrack([cov_pred, test_data[1].data, test_data[0][1]],
-                chrom, start, end,
-                plottypes=['line']*3).savefig(
-                    os.path.join(
-                        os.environ['JANGGU_OUTPUT'], 'jund_input_outout_line.svg'))
+                figsize=(8, 4))
 
+fig.savefig(os.path.join(os.environ['JANGGU_OUTPUT'], 'jund_input_outout_line.png'))
+fig.savefig(os.path.join(os.environ['JANGGU_OUTPUT'], 'jund_input_outout_line.eps'))
+fig.savefig(os.path.join(os.environ['JANGGU_OUTPUT'], 'jund_input_outout_line.svg'))
 
 
 # Plot integrated gradients for DNA sequence
@@ -114,15 +105,10 @@ chrom = 'chr3'
 start = 2354950
 end = 2355050
 
-plotGenomeTrack(infl[0], chrom, start, end,
+fig = plotGenomeTrack(infl[0], chrom, start, end,
                 plottypes=['seqplot'],
-                figsize=(6, 2)).savefig(os.path.join(
-                    os.environ['JANGGU_OUTPUT'], 'jund_input_attribution_dna.png'))
-plotGenomeTrack(infl[0], chrom, start, end,
-                plottypes=['seqplot'],
-                figsize=(10, 7)).savefig(os.path.join(
-                    os.environ['JANGGU_OUTPUT'], 'jund_input_attribution_dna.eps'))
-plotGenomeTrack(infl[0], chrom, start, end,
-                plottypes=['seqplot'],
-                figsize=(10, 7)).savefig(os.path.join(
-                    os.environ['JANGGU_OUTPUT'], 'jund_input_attribution_dna.svg'))
+                figsize=(6, 2))
+
+fig.savefig(os.path.join(os.environ['JANGGU_OUTPUT'], 'jund_input_attribution_dna.png'))
+fig.savefig(os.path.join(os.environ['JANGGU_OUTPUT'], 'jund_input_attribution_dna.eps'))
+fig.savefig(os.path.join(os.environ['JANGGU_OUTPUT'], 'jund_input_attribution_dna.svg'))
