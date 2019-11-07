@@ -27,7 +27,7 @@ In order to download the required datasets, enter the 00_preparation folder.
 It contains jupyter notebooks that specify and control the data download. 
 Furthermore, it sets up the regions of interest for the model training and evaluation.
 
-##Note
+## Note
 
 Some of the steps in the notebooks may be outcommented or deactivated, 
 including the invocation of time-consuming training steps,
