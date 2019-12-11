@@ -5,6 +5,7 @@ from janggu.data import Cover
 from janggu.data import Bioseq
 from janggu.data import GenomicIndexer
 from janggu.data import ReduceDim
+from janggu.data import view
 from janggu import Janggu
 
 from genomic_models import deepsea_model, danq_model
@@ -56,22 +57,22 @@ test_roi = os.path.join('..', 'extra', 'test.bed')
 os.environ['JANGGU_OUTPUT'] = './deepsea_results'
 
 def get_data(params):
-    train_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=train_roi,
+    train_labels = Cover.create_from_bed('labels', bedfiles=bedfiles, roi=train_roi,
                                                    resolution=200,
                                                    store_whole_genome=True,
                                                    storage='sparse', cache=True,
                                                    dtype='int8',
-                                                   minoverlap=.5))
+                                                   minoverlap=.5, verbose=True)
     test_labels = view(train_labels, test_roi)
     val_labels = view(train_labels, val_roi)
     train_seq = Bioseq.create_from_refgenome('dna', refgenome=refgenome, roi=train_roi,
                                              store_whole_genome=True,
                                              storage='ndarray', cache=True,
                                              order=params['order'],
-                                             flank=params['flank'])
+                                             flank=params['flank'], verbose=True)
     test_seq = view(train_seq, test_roi)
     val_seq = view(train_seq, val_roi)
-    return ((train_seq, train_labels), (val_seq, val_labels), (test_seq, test_labels))
+    return ((train_seq, ReduceDim(train_labels)), (val_seq, ReduceDim(val_labels)), (test_seq, ReduceDim(test_labels)))
 
 version = 'r{}'.format(rep)
 
