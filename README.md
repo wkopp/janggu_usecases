@@ -16,6 +16,9 @@ tzlocal
 r-ggplot2
 r-ggrepel
 r-dplyr
+statsmodels
+pandas
+numpy
 ```
 
 These can be installed via conda and pip.
