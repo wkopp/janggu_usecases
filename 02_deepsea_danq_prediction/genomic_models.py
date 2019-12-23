@@ -10,6 +10,9 @@ from janggu import outputdense
 @inputlayer
 @outputdense('sigmoid')
 def deepsea_model(inputs, inp, oup, params):
+    """
+    Model adopted from Zhou et al. Nat Meth 2015
+    """
     with inputs.use('dna') as dna_in:
         layer = dna_in
     cl = Conv2D(320, (8, 1), activation='relu', name='dna_conv2d_1')
@@ -34,6 +37,9 @@ def deepsea_model(inputs, inp, oup, params):
 @inputlayer
 @outputdense('sigmoid')
 def danq_model(inputs, inp, oup, params):
+    """
+    Model adopted from Quang et al. Nucleic acids research 2016
+    """
     with inputs.use('dna') as dna_in:
         layer = dna_in
     cl = Conv2D(320, (26, 1), activation='relu', name='dna_conv2d_1')

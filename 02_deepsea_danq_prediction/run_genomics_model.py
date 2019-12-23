@@ -5,6 +5,7 @@ from janggu.data import Cover
 from janggu.data import Bioseq
 from janggu.data import GenomicIndexer
 from janggu.data import ReduceDim
+from janggu.data import view
 from janggu import Janggu
 
 from genomic_models import deepsea_model, danq_model
@@ -55,60 +56,23 @@ test_roi = os.path.join('..', 'extra', 'test.bed')
 
 os.environ['JANGGU_OUTPUT'] = './deepsea_results'
 
-#def get_data(params):
-#    train_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=train_roi,
-#                                                   resolution=200,
-#                                                   store_whole_genome=True,
-#                                                   storage='sparse', cache=True,
-#                                                   dtype='int8',
-#                                                   minoverlap=.5))
-#    test_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=test_roi,
-#                                                  resolution=200,
-#                                                  store_whole_genome=True,
-#                                                  storage='sparse', cache=True,
-#                                                  dtype='int8',
-#                                                  minoverlap=.5))
-#    val_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=val_roi,
-#                                                 resolution=200,
-#                                                 store_whole_genome=True,
-#                                                 storage='sparse', cache=True,
-#                                                 dtype='int8',
-#                                                 minoverlap=.5))
-#    train_seq = Bioseq.create_from_refgenome('dna', refgenome=refgenome, roi=train_roi,
-#                                             store_whole_genome=True,
-#                                             storage='ndarray', cache=True,
-#                                             order=params['order'],
-#                                             flank=params['flank'])
-#    gi = GenomicIndexer.create_from_file(test_roi, binsize=None, stepsize=None,
-#                                         flank=params['flank'])
-#    test_seq = Bioseq('dna', garray=train_seq.garray, gindexer=gi, alphabet='ACGT',
-#                      channel_last=True)
-#    gi = GenomicIndexer.create_from_file(val_roi, binsize=None, stepsize=None,
-#                                         flank=params['flank'])
-#    val_seq = Bioseq('dna', garray=train_seq.garray, gindexer=gi, alphabet='ACGT',
-#                     channel_last=True)
-#    print('train', train_seq, train_seq.shape, train_labels, train_labels.shape)
-#    print('val', val_seq, val_seq.shape, val_labels, val_labels.shape)
-#    print('test', test_seq, test_seq.shape, test_labels, test_labels.shape)
-#    return ((train_seq, train_labels), (val_seq, val_labels), (test_seq, test_labels))
-
 def get_data(params):
-    train_labels = ReduceDim(Cover.create_from_bed('labels', bedfiles=bedfiles, roi=train_roi,
+    train_labels = Cover.create_from_bed('labels', bedfiles=bedfiles, roi=train_roi,
                                                    resolution=200,
                                                    store_whole_genome=True,
                                                    storage='sparse', cache=True,
                                                    dtype='int8',
-                                                   minoverlap=.5))
+                                                   minoverlap=.5, verbose=True)
     test_labels = view(train_labels, test_roi)
     val_labels = view(train_labels, val_roi)
     train_seq = Bioseq.create_from_refgenome('dna', refgenome=refgenome, roi=train_roi,
                                              store_whole_genome=True,
                                              storage='ndarray', cache=True,
                                              order=params['order'],
-                                             flank=params['flank'])
+                                             flank=params['flank'], verbose=True)
     test_seq = view(train_seq, test_roi)
     val_seq = view(train_seq, val_roi)
-    return ((train_seq, train_labels), (val_seq, val_labels), (test_seq, test_labels))
+    return ((train_seq, ReduceDim(train_labels)), (val_seq, ReduceDim(val_labels)), (test_seq, ReduceDim(test_labels)))
 
 version = 'r{}'.format(rep)
 
@@ -128,7 +92,6 @@ def get_opt(name):
     return opt
 
 flatten = True
-#strand = 'double'
 
 pars = {'order': order,
         'stranded': strand,
