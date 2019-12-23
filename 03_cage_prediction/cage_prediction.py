@@ -4,6 +4,7 @@ import pandas as pd
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
 from sklearn.metrics import mean_absolute_error
 
 from itertools import product
@@ -35,7 +36,6 @@ from janggu import inputlayer, outputdense
 from janggu import model_from_json
 from janggu.layers import DnaConv2D
 
-
 PARSER = argparse.ArgumentParser(description='DNA model.')
 
 PARSER.add_argument('-order', dest='order',
@@ -44,7 +44,8 @@ PARSER.add_argument('-inputpath', dest='inputpath',
                     default='../data', type=str, help='Input path')
 PARSER.add_argument('-outputpath', dest='outputpath',
                     default='../', type=str, help='Output path')
-
+PARSER.add_argument('-evaluate', dest='evaluate', default=False,
+                    action='store_true', help='Reevaluate pre-trained model.')
 args = PARSER.parse_args()
 
 
@@ -56,6 +57,7 @@ os.environ['JANGGU_OUTPUT'] = os.path.join(args.outputpath,
 
 inpath = args.inputpath
 
+print(args)
 ROI_INPUT_TRAIN = os.path.join(inpath, 'gencode.v29.tss.gtf')
 
 # ref genome
@@ -300,38 +302,39 @@ def write_results(params, res):
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(os.environ['JANGGU_OUTPUT'], "gridsearch_cage_prediction.tsv"), sep='\t')
 
-run = 0
-for val_chrom, order, strand in product(val_chroms, orders, strands):
-    run += 1
-    shared_space['run'] = run
-    shared_space['val_chrom'] = val_chrom
-    shared_space['order'] = order
-    shared_space['pretrained'] = False
-    shared_space['seq_dropout'] = 0.2
-    if order == 1:
-        shared_space['seq_dropout'] = 0.0
-    shared_space['stranded'] = strand
+if not args.evaluate:
+    run = 0
+    for val_chrom, order, strand in product(val_chroms, orders, strands):
+        run += 1
+        shared_space['run'] = run
+        shared_space['val_chrom'] = val_chrom
+        shared_space['order'] = order
+        shared_space['pretrained'] = False
+        shared_space['seq_dropout'] = 0.2
+        if order == 1:
+            shared_space['seq_dropout'] = 0.0
+        shared_space['stranded'] = strand
+    
+        shared_space['inputs'] = 'dna_only'
+        res = objective(shared_space)
+        write_results(shared_space, res)
+    
+        shared_space['inputs'] = 'epi_only'
+        res = objective(shared_space)
+        write_results(shared_space, res)
+    
+        shared_space['inputs'] = 'epi_dna'
+        shared_space['pretrained'] = True
+        res = objective(shared_space)
+        write_results(shared_space, res)
+    
+        shared_space['inputs'] = 'epi_dna'
+        shared_space['pretrained'] = False
+        res = objective(shared_space)
+        write_results(shared_space, res)
+else:
+    print('no training')
 
-    shared_space['inputs'] = 'dna_only'
-    res = objective(shared_space)
-    write_results(shared_space, res)
-
-    shared_space['inputs'] = 'epi_only'
-    res = objective(shared_space)
-    write_results(shared_space, res)
-
-    shared_space['inputs'] = 'epi_dna'
-    shared_space['pretrained'] = True
-    res = objective(shared_space)
-    write_results(shared_space, res)
-
-    shared_space['inputs'] = 'epi_dna'
-    shared_space['pretrained'] = False
-    res = objective(shared_space)
-    write_results(shared_space, res)
-
-
-#shared_space['run'] = run
 shared_space['val_chrom'] = "chr22"
 shared_space['order'] = dnaorder
 shared_space['pretrained'] = False
@@ -351,3 +354,31 @@ ax.scatter(test[1][:], testpred)
 ax.set_xlabel('Observed normalized CAGE signal')
 ax.set_ylabel('Predicted normalized CAGE signal')
 fig.savefig(os.path.join(os.environ['JANGGU_OUTPUT'], 'cage_promoter_testchrom_agreement.png'))
+
+fig, ax = plt.subplots()
+ax.scatter(test[1][:], testpred)
+ax.set_xlabel('Observed normalized CAGE signal')
+ax.set_ylabel('Predicted normalized CAGE signal')
+
+# prepare for linear regression
+X = np.ones((len(testpred),2))
+X[:,1] = test[1][:][:,0]
+y = pd.DataFrame(testpred[:,0], columns=['Observed'])
+X_ = pd.DataFrame(X, columns=['Intercept', 'Prediction'])
+
+mod = sm.OLS(y,X_)
+res= mod.fit()
+w = res.params.values
+
+# add regression line to plot
+ax.plot([-1, 3], [np.dot(w,np.array([1., -1])), np.dot(w,np.array([1., 3.]))], color='red')
+
+if res.f_pvalue < 2.2e-16:
+    ax.text(1, 1.6, 'F-stat={:1.3e}\nP-value<{}'.format(res.fvalue, 2.2e-16))
+else:
+    ax.text(1, 1.6, 'F-stat={:1.3e}\nP-value={}'.format(res.fvalue, res.f_pvalue))
+
+fig.savefig(os.path.join(os.environ['JANGGU_OUTPUT'], 'cage_promoter_testchrom_agreement_annot.png'))
+
+print(res.summary())
+
